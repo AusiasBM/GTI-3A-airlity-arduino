@@ -116,20 +116,19 @@ public:
   // @params valorTemperatura Valor del gas medido
   // @params tiempoEspera Tiempo de espera hasta que se llame al método detenerAnuncio() de laEmisora
   // ............................................................
-  void publicarTemperatura( int16_t valorTemperatura, long tiempoEspera ) {
+  void publicarMedicion( int16_t valorConcentracion, uint8_t temperatura,uint8_t humedad, long tiempoEspera ) {
 
       //
       // 1. empezamos anuncio 
       // operador << desplaza los bits de la variable TEMPERATURA 8 posiciones a la izquierda para indicar el tipo de medida que se envía (12 = TEMPERATURA)
-    	uint16_t major = (MedicionesID::TEMPERATURA << 8);
       
-    	(*this).laEmisora.emitirAnuncioIBeacon( (*this).beaconUUID, 
-    											major,
-    											valorTemperatura, // minor
-    											(*this).RSSI // rssi
-    									);
-
-                      
+      uint16_t minor = (temperatura << 8) + (humedad << 0);
+      (*this).laEmisora.emitirAnuncioIBeacon( (*this).beaconUUID, 
+          valorConcentracion,
+          minor, // minor
+          (*this).RSSI // rssi
+      );
+    	                      
       //
       // 2. esperamos el tiempo que nos digan
       //           

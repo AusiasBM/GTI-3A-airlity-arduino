@@ -118,12 +118,27 @@ void loop () {
   elPuerto.escribir( "\n" );
 
   // 
-  // Obtengo la concentración de gas y publico
+  // Obtengo las mediciones y publico
   // 
   uint16_t valorConcentracion = elMedidor.getConcentracionGas();
   int intervaloEmision = 1000;
+  uint8_t valorTemperatura = elMedidor.getTemperatura();
+  uint8_t valorRH = elMedidor.getRH();
 
-  elPuerto.escribir( "\n---- Envio C02: empieza \n" );
+  elPublicador.publicarMedicion( valorConcentracion, valorTemperatura, valorRH, 
+                  intervaloEmision // intervalo de emisión
+                  );
+
+  //A ver que saca en el puerto serie...
+  elPuerto.escribir( "\n");
+  elPuerto.escribir( valorConcentracion );
+  elPuerto.escribir( "\n");
+  elPuerto.escribir( valorTemperatura );
+  elPuerto.escribir( "\n");
+  elPuerto.escribir( valorRH );
+  elPuerto.escribir( "\n");
+
+  /*elPuerto.escribir( "\n---- Envio C02: empieza \n" );
   elPuerto.escribir( valorConcentracion );
   elPublicador.publicarConcentracion( valorConcentracion,
               intervaloEmision // intervalo de emisión
@@ -134,7 +149,7 @@ void loop () {
   // 
   // Obtengo la temperatura y publico
   // 
-  int valorTemperatura = elMedidor.getTemperatura();
+  
 
   elPuerto.escribir( "\n---- Envio Temperatura: empieza \n" );
   elPuerto.escribir( valorTemperatura );
@@ -147,7 +162,7 @@ void loop () {
   // 
   // Obtengo la humedad y publico
   // 
-  int valorRH = elMedidor.getRH();
+  
 
   elPuerto.escribir( "\n---- Envio Humedad Relativa: empieza \n" );
   elPuerto.escribir( valorRH );
@@ -159,8 +174,8 @@ void loop () {
   elPuerto.escribir( "---- loop(): acaba **** " );
   elPuerto.escribir( cont );
   elPuerto.escribir( "\n" );
-  elPublicador.laEmisora.detenerAnuncio();
-  delay( 10000 );
+  elPublicador.laEmisora.detenerAnuncio();*/
+  delay( 5000 );
   // 
   // 
   // 
