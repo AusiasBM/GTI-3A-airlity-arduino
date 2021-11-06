@@ -26,6 +26,7 @@ class Medidor{
    private:
     Stream *_mySerial;
     long dataArray[11]; //Multipurpose array
+    String informacionSensor[5]; //Stores the character based EEPROM data
       
     //unsigned long sleepTime;
     //bool isSleeping;
@@ -47,6 +48,41 @@ class Medidor{
       //isSleeping = false;
     }
 
+
+    //-------------------------------------------
+    // iniciarMedicion() <-
+    // 
+    // getInformacionSensor() es el método mediante el cual se recibe la parte de
+    // de la información del sensor. Nos servirá para saber el tipo de gas que mide
+    // de manera que si cambiamos de tipo de sensor sabremos que estamos midiendo. 
+    //
+    // @return [Texto] Información sobre el sensor [Barcode, Serial_Number, Part_Number, Gas, Date_Code, Sensitivity_Code]
+    //-------------------------------------------
+    void getInformacionSensor(void)
+    {
+     
+      while (_mySerial->available()) _mySerial->read();
+      _mySerial->flush();
+      _mySerial->write('e');
+    
+      while (!_mySerial->available()) {}
+    
+      String data = _mySerial->readStringUntil('\n');
+      while (!_mySerial->available()) {}
+      for (int i = 14; i < 19; i++) {
+        data = _mySerial->readStringUntil('\n');
+        String subS1 = data.substring(0, data.indexOf('='));
+        String subS2 = data.substring(data.indexOf('=') + 2);
+        informacionSensor[i - 14] = subS2;
+       
+      }
+      data = _mySerial->readStringUntil('\n');
+      String subS1 = data.substring(0, data.indexOf('='));
+      String subS2 = data.substring(data.indexOf('=') + 2);
+     
+      while (_mySerial->available()) _mySerial->read();
+    
+    }
 
     //-------------------------------------------
     //c: caracter -> iniciarMedicion() 
@@ -119,6 +155,18 @@ class Medidor{
     int getRH()
     {
       return dataArray[3];
+    }
+
+    //-------------------------------------------
+    //Texto <- getTipoMedicion() <-
+    // 
+    // getTipoMedicion() retorna el tipo de gas que mide el sensor almacenado en la posición 3 del array devuelto
+    // por el método getInformacionSensor().
+    //
+    // @return Texto Retorna el tipo de gas
+    //-------------------------------------------
+    String getTipoMedicion(){
+      return informacionSensor[3];
     }
 
 

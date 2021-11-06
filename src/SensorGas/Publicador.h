@@ -21,18 +21,37 @@ class Publicador {
   // ............................................................
 private:
 
-  uint8_t beaconUUID[16] = { 
-	'E', 'P', 'S', 'G', '-', 'G', 'T', 'I', 
-	'-', 'P', 'R', 'O', 'Y', '-', '3', 'A'
-	};
+  uint8_t beaconUUID_IAQ[16] = { 
+  'A', 'I', 'R', 'L', 'I', 'T', 'Y', '-', 
+  'G', 'A', 'S', '-', '-', 'I', 'A', 'Q'
+  };
 
+  uint8_t beaconUUID_SO2[16] = { 
+  'A', 'I', 'R', 'L', 'I', 'T', 'Y', '-', 
+  'G', 'A', 'S', '-', '-', 'S', 'O', '2'
+  };
+
+  uint8_t beaconUUID_NO2[16] = { 
+  'A', 'I', 'R', 'L', 'I', 'T', 'Y', '-', 
+  'G', 'A', 'S', '-', '-', 'N', 'O', '2'
+  };
+
+  uint8_t beaconUUID_O3[16] = { 
+  'A', 'I', 'R', 'L', 'I', 'T', 'Y', '-', 
+  'G', 'A', 'S', '-', '-', '_', 'O', '3'
+  };
+
+  uint8_t beaconUUID[16] = { 
+  'T', 'R', 'I', 'C', 'O', 'E', 'N', 'V', 
+  'I', 'R', 'O', 'N', 'M', 'E', 'N', 'T'
+  };
  
 public:
   // ............................................................
   // Declaramos un objeto de la clase EmisoraBLE 
   // ............................................................
   EmisoraBLE laEmisora {
-	  "GTI-3A-ABENEST", //  nombre emisora
+	  "GTI-AIRLITY", //  nombre emisora
 	  0x004c, // fabricanteID (Apple)
 	  4 // txPower
   };
@@ -42,15 +61,6 @@ public:
   // ............................................................
   // ............................................................
 public:
-
-  // ............................................................
-  // Enum para enviarlo como flag del tipo de medida que estamos enviando
-  // ............................................................
-  enum MedicionesID  {
-	CONCENTRACION = 11,
-	TEMPERATURA = 12,
-	HUMEDAD = 13
-  };
 
   // ............................................................
   // Constructor()
@@ -70,42 +80,6 @@ public:
   } // ()
 
   // ............................................................
-  // valorConcentracion: N,
-  // tiempoEspera : N -> publicarConcentracion() <-
-  //
-  // publicarConcentracion() hace referencia al método emitirAnuncioIBeacon() del objeto laEmisora
-  // para publicar el valor de concentración de gas con un flag de que la medida enviada es gas (enviado en Major),
-  // y el valor de la medición en Minor.
-  //
-  // @params valorConcentracion Valor del gas medido
-  // @params tiempoEspera Tiempo de espera hasta que se llame al método detenerAnuncio() de laEmisora
-  // ............................................................
-  void publicarConcentracion( int16_t valorConcentracion, long tiempoEspera ) {
-
-    	//
-    	// 1. empezamos anuncio
-      // operador << desplaza los bits de la variable Concentracion 8 posiciones a la izquierda
-      // para indicar el tipo de medida que se envía (11 = Concentracion)
-    	//
-    	uint16_t major = (MedicionesID::CONCENTRACION << 8);
-    	(*this).laEmisora.emitirAnuncioIBeacon( (*this).beaconUUID, 
-    											major,
-    											valorConcentracion, // minor
-    											(*this).RSSI // rssi
-    									);
-    
-    	//
-    	// 2. esperamos el tiempo que nos digan
-    	//
-    	delay( tiempoEspera );
-    
-    	//
-    	// 3. paramos anuncio
-    	//
-    	(*this).laEmisora.detenerAnuncio();
-  } // ()
-
-  // ............................................................
   // valorTemperatura: N,
   // tiempoEspera : N -> publicarTemperatura() <-
   //
@@ -116,15 +90,30 @@ public:
   // @params valorTemperatura Valor del gas medido
   // @params tiempoEspera Tiempo de espera hasta que se llame al método detenerAnuncio() de laEmisora
   // ............................................................
-  void publicarMedicion( int16_t valorConcentracion, uint8_t temperatura,uint8_t humedad, long tiempoEspera ) {
+  void publicarMedicion( int16_t valorConcentracion, uint8_t valorTemperatura,uint8_t valorHumedad, String tipoMedicion, long tiempoEspera ) {
 
       //
       // 1. empezamos anuncio 
       // operador << desplaza los bits de la variable TEMPERATURA 8 posiciones a la izquierda para indicar el tipo de medida que se envía (12 = TEMPERATURA)
-      
-      uint16_t minor = (temperatura << 8) + (humedad << 0);
-      (*this).laEmisora.emitirAnuncioIBeacon( (*this).beaconUUID, 
-          valorConcentracion,
+
+      uint8_t uuid[16] = {};
+
+      //No puedo usar un switch con un String!! Alternativa facil If-Else...
+      if(tipoMedicion == "IAQ"){
+        memcpy( &uuid[0], &beaconUUID_IAQ[0], 16 );
+      }else if(tipoMedicion == "NO2"){
+        memcpy( &uuid[0], &beaconUUID_NO2[0], 16 ); 
+      }else if(tipoMedicion == "SO2"){
+        memcpy( &uuid[0], &beaconUUID_SO2[0], 16 );    
+      }else if(tipoMedicion == "O3"){
+        memcpy( &uuid[0], &beaconUUID_O3[0], 16 );     
+      }else{
+        memcpy( &uuid[0], &beaconUUID_IAQ[0], 16 );
+      }
+        
+      uint16_t minor = (valorTemperatura << 8) + (valorHumedad << 0);
+      (*this).laEmisora.emitirAnuncioIBeacon( uuid, 
+          12,
           minor, // minor
           (*this).RSSI // rssi
       );
@@ -140,40 +129,6 @@ public:
     	(*this).laEmisora.detenerAnuncio();
   } // ()
 
-   // ............................................................
-  // valorRH: N,
-  // tiempoEspera : N -> publicarRH() <-
-  //
-  // publicarRH() hace referencia al método emitirAnuncioIBeacon() del objeto laEmisora
-  // para publicar el valor de concentración de gas con un flag de que la medida enviada es gas (enviado en Major),
-  // y el valor de la medición en Minor.
-  //
-  // @params valorRH Valor del gas medido
-  // @params tiempoEspera Tiempo de espera hasta que se llame al método detenerAnuncio() de laEmisora
-  // ............................................................
-  void publicarRH( int16_t valorRH,long tiempoEspera ) {
-
-      //
-      // 1. empezamos anuncio
-      // operador << desplaza los bits de la variable CO2 8 posiciones a la izquierda para indicar el tipo de medida que se envía (13 = RH)
-      //
-      uint16_t major = (MedicionesID::HUMEDAD << 8);
-      (*this).laEmisora.emitirAnuncioIBeacon( (*this).beaconUUID, 
-                          major,
-                          valorRH, // minor
-                          (*this).RSSI // rssi
-                      );
-    
-      //
-      // 2. esperamos el tiempo que nos digan
-      //
-      delay( tiempoEspera );
-    
-      //
-      // 3. paramos anuncio
-      //
-      (*this).laEmisora.detenerAnuncio();
-  } // ()
 	
 }; // class
 

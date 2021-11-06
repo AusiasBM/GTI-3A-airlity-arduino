@@ -72,7 +72,7 @@ void inicializarComunicacionSensor () {
 // setup()
 // --------------------------------------------------------------
 void setup() {
-
+  using namespace Globales;
   // 
   // Iniciamos el Serial1 para establecer la comunicación UART con el sensor
   // 
@@ -82,11 +82,13 @@ void setup() {
   // 
   // Inicializamos la emisora BLE de Bluefruit...
   // 
-  Globales::elPublicador.encenderEmisora();
+  elPublicador.encenderEmisora();
 
-  delay( 1000 );
+  delay( 1000 ); 
 
-  Globales::elPuerto.escribir( "---- setup(): fin ---- \n " );
+  elMedidor.getInformacionSensor();
+
+  elPuerto.escribir( "---- setup(): fin ---- \n " );
 
 } // setup ()
 
@@ -97,6 +99,7 @@ void setup() {
 // --------------------------------------------------------------
 namespace Loop {
   uint8_t cont = 0;
+  bool leerEEPROM = true;
 };
 
 // ..............................................................
@@ -105,6 +108,12 @@ void loop () {
 
   using namespace Loop;
   using namespace Globales;
+
+  if(leerEEPROM){
+    
+    leerEEPROM = false;
+  }
+  
 
   cont++;
 
@@ -124,8 +133,9 @@ void loop () {
   int intervaloEmision = 1000;
   uint8_t valorTemperatura = elMedidor.getTemperatura();
   uint8_t valorRH = elMedidor.getRH();
+  String tipoMedicion = elMedidor.getTipoMedicion();
 
-  elPublicador.publicarMedicion( valorConcentracion, valorTemperatura, valorRH, 
+  elPublicador.publicarMedicion( valorConcentracion, valorTemperatura, valorRH, tipoMedicion, 
                   intervaloEmision // intervalo de emisión
                   );
 
@@ -136,6 +146,8 @@ void loop () {
   elPuerto.escribir( valorTemperatura );
   elPuerto.escribir( "\n");
   elPuerto.escribir( valorRH );
+  elPuerto.escribir( "\n");
+  elPuerto.escribir( tipoMedicion );
   elPuerto.escribir( "\n");
 
   /*elPuerto.escribir( "\n---- Envio C02: empieza \n" );
@@ -175,7 +187,7 @@ void loop () {
   elPuerto.escribir( cont );
   elPuerto.escribir( "\n" );
   elPublicador.laEmisora.detenerAnuncio();*/
-  delay( 5000 );
+  delay( 1000 );
   // 
   // 
   // 
