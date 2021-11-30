@@ -94,7 +94,7 @@ public:
 
       //
       // 1. empezamos anuncio 
-      // operador << desplaza los bits de la variable TEMPERATURA 8 posiciones a la izquierda para indicar el tipo de medida que se envía (12 = TEMPERATURA)
+      // operador << desplaza los bits de la variable TEMPERATURA 8 posiciones a la izquierda 
 
       uint8_t uuid[16] = {};
 
@@ -113,7 +113,7 @@ public:
         
       uint16_t minor = (valorTemperatura << 8) + (valorHumedad << 0);
       (*this).laEmisora.emitirAnuncioIBeacon( uuid, 
-          12,
+          valorConcentracion,
           minor, // minor
           (*this).RSSI // rssi
       );

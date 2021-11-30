@@ -26,7 +26,10 @@ class Medidor{
    private:
     Stream *_mySerial;
     long dataArray[11]; //Multipurpose array
-    String informacionSensor[5]; //Stores the character based EEPROM data
+    
+    String eepromStr[5]; //Stores the character based EEPROM data
+    long eepromInt[13];  //Stores the integer based EEPROM data
+    float Sensitivity_Code;  //Stores the sensitivity coefficient in nA/PPM
       
     //unsigned long sleepTime;
     //bool isSleeping;
@@ -50,13 +53,14 @@ class Medidor{
 
 
     //-------------------------------------------
-    // iniciarMedicion() <-
+    // getInformacionSensor() <-
     // 
     // getInformacionSensor() es el método mediante el cual se recibe la parte de
     // de la información del sensor. Nos servirá para saber el tipo de gas que mide
     // de manera que si cambiamos de tipo de sensor sabremos que estamos midiendo. 
-    //
-    // @return [Texto] Información sobre el sensor [Barcode, Serial_Number, Part_Number, Gas, Date_Code, Sensitivity_Code]
+    //  
+    // @return eepromInt [N] Información sobre el sensor
+    // @return eepromStr [Texto] Información sobre el sensor [Barcode, Serial_Number, Part_Number, Gas, Date_Code]
     //-------------------------------------------
     void getInformacionSensor(void)
     {
@@ -68,18 +72,27 @@ class Medidor{
       while (!_mySerial->available()) {}
     
       String data = _mySerial->readStringUntil('\n');
+      
       while (!_mySerial->available()) {}
+      for (int i = 1; i < 14; i++) {
+        data = _mySerial->readStringUntil('\n');
+        String subS1 = data.substring(0, data.indexOf('='));
+        String subS2 = data.substring(data.indexOf('=') + 2);
+        eepromInt[i] = subS2.toInt();
+        
+      }
       for (int i = 14; i < 19; i++) {
         data = _mySerial->readStringUntil('\n');
         String subS1 = data.substring(0, data.indexOf('='));
         String subS2 = data.substring(data.indexOf('=') + 2);
-        informacionSensor[i - 14] = subS2;
-       
+        eepromStr[i - 14] = subS2;
+        
       }
       data = _mySerial->readStringUntil('\n');
       String subS1 = data.substring(0, data.indexOf('='));
       String subS2 = data.substring(data.indexOf('=') + 2);
-     
+      Sensitivity_Code = subS2.toFloat();
+      
       while (_mySerial->available()) _mySerial->read();
     
     }
@@ -166,7 +179,7 @@ class Medidor{
     // @return Texto Retorna el tipo de gas
     //-------------------------------------------
     String getTipoMedicion(){
-      return informacionSensor[3];
+      return eepromStr[3];
     }
 
 
