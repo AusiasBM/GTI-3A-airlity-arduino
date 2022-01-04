@@ -68,23 +68,25 @@ void inicializarComunicacionSensor () {
 
 } // ()
 
+
+
 // --------------------------------------------------------------
 // setup()
 // --------------------------------------------------------------
 void setup() {
   using namespace Globales;
-  // 
+
   // Iniciamos el Serial1 para establecer la comunicación UART con el sensor
-  // 
   inicializarComunicacionSensor();
-
-
-  // 
+ 
   // Inicializamos la emisora BLE de Bluefruit...
-  // 
   elPublicador.encenderEmisora();
 
   delay( 1000 ); 
+
+  elPuerto.escribir( "---- Iniciando reseteo... ---- \n " );
+  elMedidor.resetearSensor(10000);
+  elPuerto.escribir( "---- Reseteo finalizado!! ---- \n " );
 
   elMedidor.getInformacionSensor();
 

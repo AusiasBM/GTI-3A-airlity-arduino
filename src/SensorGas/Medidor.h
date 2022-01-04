@@ -93,8 +93,46 @@ class Medidor{
       String subS2 = data.substring(data.indexOf('=') + 2);
       Sensitivity_Code = subS2.toFloat();
       
-      while (_mySerial->available()) _mySerial->read();
+      while (_mySerial->available()) _mySerial->read();  
+    }
+
+    /**
+     * resetearSensor() 
+     * @Description:
+     * Metodo para resetear y recalibrar el sensor después de ser apagado.
+     * Al encenderse y después de espera un periodo de tiempo (el fabricante recomienda 1h),
+     * se envía por la UART1 el caracter 'Z' que inicia la recalibración. Se debe hacer con
+     * aire limpio.
+     * 
+     * @param periodo N con el periodo en milisegundos a eperar antes de iniciar la recalibración
+     * @return V/F Booleano (0 o 1) de si se ha realizado correctamente
+     */
+    int resetearSensor(long periodo){
+
+      long tiempoActual = millis();
     
+      //Esperamos a que pase el periodo de tiempo...
+      while(millis() < tiempoActual+periodo){}
+
+      //Inicio del reseteo...
+      String commandString;
+      while (_mySerial->available()) _mySerial->read();
+      _mySerial->flush();
+      
+      _mySerial->write('Z');
+    
+      //should be \r\nSetting zero..." either "done\r\n
+      while (!_mySerial->available()) {}
+      commandString = _mySerial->readStringUntil('\n');
+    
+      delay(10);
+     
+      while (!_mySerial->available()) {}
+      commandString = _mySerial->readStringUntil('\n');
+      if (commandString == "Setting zero...done\r") {
+        return 1;
+      }
+      else {return 0;}
     }
 
     //-------------------------------------------
@@ -138,7 +176,14 @@ class Medidor{
     //-------------------------------------------
     int getConcentracionGas()
     {
-      return dataArray[1];
+      int sum = 0;
+      for(int i = 0; i < 10; i++){
+        iniciarMedicion('\r');
+        sum += dataArray[1];
+        delay(10);
+      }
+      
+      return sum/10;
     }
 
     
@@ -181,6 +226,8 @@ class Medidor{
     String getTipoMedicion(){
       return eepromStr[3];
     }
+
+    
 
 
     //De momento esto no se usa pero puede ser interesante en el futuro
